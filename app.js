@@ -16,7 +16,7 @@ const Dish = require('./models/dish_model');
 
 //connection
 const url = 'mongodb://localhost:27017/conFusion';
-const connection = mongoose.connect(url, 
+const connection = mongoose.connect(url,
   { poolSize: 10, bufferMaxEntries: 0, reconnectTries: 5000, useNewUrlParser: true, useUnifiedTopology: true });
 
 var app = express();
@@ -29,6 +29,38 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+//custome basic http authentication
+
+function basicAuth(req, res, next) {
+  console.log(req.headers);
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    res.setHeader('WWW-Authenticate', 'Basic');
+    const err = new Error('no username and password passed');
+    err.status = 401;
+    next(err);
+  } else {
+    login_creds = new Buffer(authHeader.split(' ')[1], 'base64').toString().split(':');
+    const uname = login_creds[0];
+    const pword = login_creds[1];
+    console.log(`uname ${uname} password: ${pword}`);
+    
+    if (uname === 'admin' && pword === 'password') {
+      next(); //allow this req to be handled by all other middleware follows
+    } else {
+      console.log('bad un and pw');
+      res.setHeader('WWW-Authenticate', 'Basic');
+      const err = new Error('no username and password passed');
+      err.status = 401;
+      next(err);
+
+    }
+  }
+}
+
+app.use(basicAuth);
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
@@ -50,6 +82,8 @@ app.use(function (err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
+  console.log(`error code is ${err.status}`);
+  
   res.render('error');
 });
 
