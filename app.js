@@ -6,18 +6,21 @@ var logger = require('morgan');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const sessionFileStore = require('session-file-store')(session);
+const passport = require('passport');
+const authenticate = require('./authenticate');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/userRouter');
 var dishRouter = require('./routes/dishRouter');
 var promoRouter = require('./routes/promoRouter');
 var leaderRouter = require('./routes/leaderRouter');
+const config = require('./config.js');
 
 // mongoose models
 const Dish = require('./models/dish_model');
 
 //connection
-const url = 'mongodb://localhost:27017/conFusion';
+const url = config.mongoUrl;
 const connection = mongoose.connect(url,
   { poolSize: 10, bufferMaxEntries: 0, reconnectTries: 5000, useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -31,38 +34,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-// app.use(cookieParser('sdkjfdkjfjksldfljksdlfkjsdjklf'));
-app.use(session({  // will add req.session to the request message
-  name: 'sess_id',
-  secret: 'dfklgjfdkljgdfkljgdflkgjdfkl',
-  saveUninitialized: 'false',
-  store: false,
-  store: new sessionFileStore()
-}));
+
+app.use(passport.initialize());
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-
-//custome basic http authentication
-
-function auth(req, res, next) {
-
-  console.log(` signed cookie: ${JSON.stringify(req.signedCookies)}`);
-  console.log(` unsigned cookie: ${JSON.stringify(req.cookies)}`);
-  console.log(` session: ${JSON.stringify(req.session)}`);
-  if (!req.session.user) {
-    console.log(`unlogged-in user tries to perform authorized action.`);
-    
-    res.statusCode = 401;
-    res.end('you need to login to perform this action.');
-  } else {
-    next();
-  }
-}
-
-app.use(auth);
-
-
+  
 app.use('/dishes', dishRouter);
 app.use('/promos', promoRouter);
 app.use('/leaders', leaderRouter);

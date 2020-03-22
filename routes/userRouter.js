@@ -1,6 +1,9 @@
 var express = require('express');
 var router = express.Router();
 const User = require('../models/user_model');
+const passport = require('passport');
+const authenticate = require('../authenticate');
+
 
 /* GET users listing. */
 router.get('/', function (req, res, next) {
@@ -8,60 +11,31 @@ router.get('/', function (req, res, next) {
 });
 
 router.post('/signup', (req, res, next) => {
-  User.findOne({ username: req.body.username }).then((user) => {
-    if (user) {
-      const err = new Error(`User ${req.body.username} already exists`);
-      err.status = 403;
-      next(err);
-    } else {
-      return User.create({
-        username: req.body.username,
-        password: req.body.password
+  User.register(new User({ username: req.body.username }), req.body.password, (err, user) => {
+    console.log(`${req.body.username} :${req.body.password}`);
+
+    if (err) {
+      res.status(500).json({
+        err: err
       });
+    } else {
+      passport.authenticate('local')(req, res, () => {
+        res.status(200).json({
+          signupStatus: true
+        });
+      }
+      );
     }
-  }).then((user) => {
-    res.status(200).json({
-      signupStatus: 'success'
-    });
-  }).catch((err) => next(err));
+
+  });
 });
 
-router.all('/login', (req, res, next) => {
-
-  if (!req.session.user) {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      res.setHeader('WWW-Authenticate', 'Basic');
-      const err = new Error('no username and password passed');
-      err.status = 401;
-      next(err);
-    } else {
-      login_creds = new Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
-      const username = login_creds[0];
-      const password = login_creds[1];
-
-      User.findOne({ 'username': username }).then((user) => {
-        // user should be a proper value here
-        if (!user || password !== user.password || username !== user.username) {
-          throw new Error();
-        } else {
-          req.session.user = 'authenticated';
-          res.statusCode = 200;
-          res.end('you are logged in.');
-        }
-      }).catch(() => {
-        const err = new Error(`incorrect login credentials`);
-        err.status = 403;
-        next(err);
-      });
-
-    }
-
-  } else {
-    res.statusCode = 200;
-    res.end('you are already logged in.');
-  }
-
+router.all('/login', passport.authenticate('local'), (req, res) => {
+  const token = authenticate.getToken({_id: req.user._id});
+  res.status(200).json({
+    loginStatus: true,
+    jwt: token
+  });
 });
 
 
@@ -77,4 +51,5 @@ router.get('/logout', (req, res, next) => {
     next(err);
   }
 });
+
 module.exports = router;
