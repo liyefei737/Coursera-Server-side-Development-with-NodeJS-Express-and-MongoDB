@@ -5,8 +5,18 @@ const userSchema = new mongoose.Schema({
     isAdmin: {
         type: Boolean,
         default: false
+    },
+    firstName: {
+        type: String,
+        defalult: ''
+    },
+    lastName: {
+        type: String,
+        defalult: ''
     }
-}, { timestamps: true });
+}, {
+    timestamps: true
+});
 
 userSchema.plugin(passportLocalMongoose);
 
