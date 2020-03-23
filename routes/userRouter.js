@@ -4,10 +4,26 @@ const User = require('../models/user_model');
 const passport = require('passport');
 const authenticate = require('../authenticate');
 
+// const debug = (req,res,next) => {
+//     console.log(`header: \n${JSON.stringify(req.headers)}`);
+//     console.log(`body: \n${JSON.stringify(req.headers)}`);
+//     next();
+// }
 
 /* GET users listing. */
-router.get('/', function(req, res, next) {
-    res.send('respond with a resource');
+router.get('/', authenticate.verifyUser, authenticate.verfiyAdmin, function (req, res, next) {
+    User.find({}).then((users) => {
+        res.status(200).json(users.map(user => {
+            return {
+                username: user.username,
+                firstName: user.firstName,
+                lastName: user.lastName,
+            };
+        }));
+    }).catch((err) => {
+        next(err);
+    });
+
 });
 
 router.post('/signup', (req, res, next) => {
@@ -25,8 +41,7 @@ router.post('/signup', (req, res, next) => {
         } else {
             console.log(`req body: ${JSON.stringify(req.body)}`);
             console.log(`signup user: ${JSON.stringify(user)}`);
-            
-            
+
             user.save((err, user) => {
                 if (err) {
                     res.status(500).json({

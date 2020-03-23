@@ -35,6 +35,20 @@ module.exports.getToken = (user) => {
     return jwt.sign(user, config.secretKey);
 };
 
+module.exports.verfiyAdmin = (req, res, next) => {
+    console.log('verifying admin');
+    console.log(`${req.user}`);
+    
+    
+    if (req.user.isAdmin) {
+        next();
+    } else {
+        const error = new Error('"You are not authorized to perform this operation!');
+        error.status = 403;
+        next(error);
+    }
+};
+
 module.exports.verifyUser = passport.authenticate('jwt', { session: false });
 
 
