@@ -26,6 +26,16 @@ const connection = mongoose.connect(url,
 
 var app = express();
 
+//redirect all requests to the sucre port
+app.all('*', (req, res, next) => {
+  
+  if (req.secure) {
+    next();
+  } else {
+    res.redirect(307,'https://localhost:3443');
+  }
+});
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
