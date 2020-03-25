@@ -61,6 +61,8 @@ router.post('/signup', (req, res, next) => {
 });
 
 router.all('/login', passport.authenticate('local'), (req, res) => {
+    console.log('logging in');
+    
     const token = authenticate.getToken({
         _id: req.user._id
     });

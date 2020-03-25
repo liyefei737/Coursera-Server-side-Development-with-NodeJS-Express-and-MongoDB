@@ -14,6 +14,7 @@ var usersRouter = require('./routes/userRouter');
 var dishRouter = require('./routes/dishRouter');
 var promoRouter = require('./routes/promoRouter');
 var leaderRouter = require('./routes/leaderRouter');
+var imageUploadRouter = require('./routes/imageUploadRouter');
 const config = require('./config.js');
 
 // mongoose models
@@ -32,7 +33,7 @@ app.all('*', (req, res, next) => {
   if (req.secure) {
     next();
   } else {
-    res.redirect(307,'https://localhost:3443');
+    res.redirect(307,`https://localhost:3443${req.path}`);
   }
 });
 
@@ -53,6 +54,7 @@ app.use('/users', usersRouter);
 app.use('/dishes', dishRouter);
 app.use('/promos', promoRouter);
 app.use('/leaders', leaderRouter);
+app.use('/imageupload',imageUploadRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
