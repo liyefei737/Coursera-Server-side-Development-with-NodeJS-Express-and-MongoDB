@@ -3,6 +3,7 @@ var router = express.Router();
 const User = require('../models/user_model');
 const passport = require('passport');
 const authenticate = require('../authenticate');
+const cors = require('./cors');
 
 // const debug = (req,res,next) => {
 //     console.log(`header: \n${JSON.stringify(req.headers)}`);
@@ -11,7 +12,7 @@ const authenticate = require('../authenticate');
 // }
 
 /* GET users listing. */
-router.get('/', authenticate.verifyUser, authenticate.verfiyAdmin, function (req, res, next) {
+router.get('/', cors.corsWithOptions, authenticate.verifyUser, authenticate.verfiyAdmin, function (req, res, next) {
     User.find({}).then((users) => {
         res.status(200).json(users.map(user => {
             return {
@@ -26,7 +27,7 @@ router.get('/', authenticate.verifyUser, authenticate.verfiyAdmin, function (req
 
 });
 
-router.post('/signup', (req, res, next) => {
+router.post('/signup',cors.corsWithOptions, (req, res, next) => {
     User.register(new User({
         username: req.body.username,
         firstName: req.body.firstName || '',
@@ -60,7 +61,7 @@ router.post('/signup', (req, res, next) => {
     });
 });
 
-router.all('/login', passport.authenticate('local'), (req, res) => {
+router.all('/login',cors.corsWithOptions, passport.authenticate('local'), (req, res) => {
     console.log('logging in');
     
     const token = authenticate.getToken({

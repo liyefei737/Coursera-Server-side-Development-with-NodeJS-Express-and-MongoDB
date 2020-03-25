@@ -5,7 +5,7 @@ const dishRouter = express.Router();
 const mongoose = require('mongoose');
 const Dish = require('../models/dish_model');
 const authenticate = require('../authenticate');
-
+const cors = require('./cors');
 const multer = require('multer');
 
 const storageEngine = multer.diskStorage({
@@ -34,7 +34,9 @@ const uploadEngine = multer(multerOptions);
 
 const uploadRouter = express.Router();
 
-uploadRouter.route('/').post(authenticate.verifyUser, authenticate.verfiyAdmin,uploadEngine.single('imageFile'), (req, res, next) => {
+uploadRouter.route('/').options(cors.corsWithOptions, (req, res) => {
+    res.sendStatus(200);
+}).post(cors.corsWithOptions,authenticate.verifyUser, authenticate.verfiyAdmin,uploadEngine.single('imageFile'), (req, res, next) => {
     res.status(200).json(req.file);
 });
 
