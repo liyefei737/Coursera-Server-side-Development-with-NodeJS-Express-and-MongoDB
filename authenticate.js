@@ -4,6 +4,7 @@ const User = require('./models/user_model');
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 const jwt = require('jsonwebtoken');
+const FacebookTokenStrategy = require('passport-facebook-token');
 
 const config = require('./config');
 
@@ -50,6 +51,38 @@ module.exports.verfiyAdmin = (req, res, next) => {
 };
 
 module.exports.verifyUser = passport.authenticate('jwt', { session: false });
+
+
+module.exports.facebookPassport = passport.use(new FacebookTokenStrategy({
+    clientID: config.facebook.clientId,
+    clientSecret: config.facebook.clientSecret
+}, (accessToken, refreshToken, fbProfile, done) => {
+    User.findOne({facebookId: fbProfile.id}, (err, user) => {
+        if (err) {
+            return done(err,false);
+        }
+        if (user) {
+            return done(null,user);
+        }
+        // no error but an user does not exist
+        // first time user login with his facebook account
+        // we create an account for this user in our app
+        user = new User({
+            username: fbProfile.displayName,
+        });
+        user.facebookId = fbProfile.id,
+        user.firstName = fbProfile.name.givenName,
+        user.lastName = fbProfile.name.familyName
+        user.save((err,user) => {
+            if (err) {
+                return done(err, false);
+            } else {
+                return done(null, user);
+            }
+
+        });
+    })
+}));
 
 
 

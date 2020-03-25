@@ -86,4 +86,17 @@ router.get('/logout', (req, res, next) => {
     }
 });
 
+router.get('/facebook/token', passport.authenticate('facebook-token'), (req, res) => {
+    if (req.user) {
+        const token = authenticate.getToken({
+            _id: req.user._id
+        });
+        res.status(200).json({
+            loginStatus: true,
+            jwt: token
+        });
+
+    }
+});
+
 module.exports = router;
