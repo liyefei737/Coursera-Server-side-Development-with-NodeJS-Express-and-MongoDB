@@ -11,6 +11,7 @@ const authenticate = require('./authenticate');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/userRouter');
+var favoriteRouter = require('./routes/favoritesRouter');
 var dishRouter = require('./routes/dishRouter');
 var promoRouter = require('./routes/promoRouter');
 var leaderRouter = require('./routes/leaderRouter');
@@ -52,6 +53,7 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
   
 app.use('/dishes', dishRouter);
+app.use('/favorites', favoriteRouter);
 app.use('/promos', promoRouter);
 app.use('/leaders', leaderRouter);
 app.use('/imageupload',imageUploadRouter);
